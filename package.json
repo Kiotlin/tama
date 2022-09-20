@@ -1,0 +1,16 @@
+{
+  "name": "tama",
+  "version": "0.1.0",
+  "description": "Beautiful 3d glass material balls in browser",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "three": "^0.144.0"
+  }
+}
