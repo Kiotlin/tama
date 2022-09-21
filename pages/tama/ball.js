@@ -5,7 +5,8 @@ import { LightProbeGenerator } from "three/addons/lights/LightProbeGenerator.js"
 import { useEffect } from "react";
 
 export default function Ball() {
-  let scene, camera, renderer, ball;
+  let scene, camera, renderer;
+  let ball, table;
 
   let gui;
 
@@ -18,17 +19,17 @@ export default function Ball() {
     directionalLightIntensity: 0.2,
     envMapIntensity: 1,
     materialColor: {
-        r: '0.09',
-        g: '0.78',
-        b: '0.56',
+      r: "0.09",
+      g: "0.78",
+      b: "0.56",
     },
   };
 
   function init() {
     // scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color("rgb(240, 234, 218)");
-    scene.environment = new THREE.Color("rgb(240, 234, 218)");
+    scene.background = new THREE.Color("rgb(233, 227, 213)");
+    // scene.environment = new THREE.Color("rgb(240, 234, 218)");
 
     // camera
     camera = new THREE.PerspectiveCamera(
@@ -98,7 +99,11 @@ export default function Ball() {
 
       // mesh
       ball = new THREE.Mesh(geometry, material);
+      ball.position.y = 5;
       scene.add(ball);
+
+      // shadow
+      renderShadow();
 
       render();
     });
@@ -134,11 +139,51 @@ export default function Ball() {
         render();
       });
 
-    render();
+    // on window resize
+    window.addEventListener("resize", onWindowResize, false);
+
+    // animate
+    animate();
   }
 
   function render() {
     renderer.render(scene, camera);
+  }
+
+  function renderShadow() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+
+    const context = canvas.getContext("2d");
+    const gradient = context.createRadialGradient(
+      canvas.width / 2,
+      canvas.height / 2,
+      0,
+      canvas.width / 2,
+      canvas.height / 2,
+      canvas.width / 2
+    );
+    gradient.addColorStop(0, "rgba(190,190,190,0.1)");
+    gradient.addColorStop(0.2, "rgba(255,255,255,0.5)");
+
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    const shadowTexture = new THREE.CanvasTexture(canvas);
+
+    const shadowMaterial = new THREE.MeshBasicMaterial({
+      map: shadowTexture,
+      color: new THREE.Color('rgba(255, 242, 204, 1)'),
+      metalness: 0,
+      roughness: 0,
+    });
+    const shadowGeo = new THREE.PlaneGeometry(100, 100, 1, 1);
+
+    table = new THREE.Mesh(shadowGeo, shadowMaterial);
+    table.position.y = -13;
+    table.rotation.x = -Math.PI / 2;
+    scene.add(table);
   }
 
   function onWindowResize() {
@@ -150,10 +195,19 @@ export default function Ball() {
     render();
   }
 
+  function animate() {
+    window.requestAnimationFrame(animate);
+
+    if (ball) {
+      ball.rotation.x += 0.005;
+      ball.rotation.y += 0.005;
+    }
+
+    render();
+  }
+
   useEffect(() => {
     init();
-
-    window.addEventListener("resize", onWindowResize, false);
   });
 
   return null;
