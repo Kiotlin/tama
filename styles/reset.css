@@ -21,8 +21,8 @@ body {
 
 .author {
   position: absolute;
-  margin-top: -2em;
-  margin-left: 1em;
+  margin-bottom: 1em;
+  margin-left: 0em;
   padding: 0 0.2em;
   font-size: 13px;
   color: white;
