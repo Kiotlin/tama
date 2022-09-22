@@ -52,8 +52,8 @@ export default function Ball() {
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // axes helper
-    const axesHelper = new THREE.AxesHelper(200);
-    scene.add(axesHelper);
+    // const axesHelper = new THREE.AxesHelper(200);
+    // scene.add(axesHelper);
 
     // controls
     const controls = new OrbitControls(camera, renderer.domElement);
