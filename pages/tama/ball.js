@@ -88,7 +88,7 @@ export default function Ball() {
     scene.add(directionalLight);
 
     //Create a helper for the shadow camera (optional)
-    const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 10);
+    const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 8);
     scene.add(dLightHelper);
 
     // envmap
