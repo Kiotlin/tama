@@ -18,11 +18,8 @@ export default function Ball() {
     lightProbeIntensity: 1.0,
     directionalLightIntensity: 0.2,
     envMapIntensity: 1,
-    materialColor: {
-      r: "0.09",
-      g: "0.78",
-      b: "0.56",
-    },
+    ballColor: { r: 0.6745, g: 0.1642, b: 0.1613 },
+    groundColor: { r: 0.1716, g: 0.4615, b: 0.3669 },
   };
 
   function init() {
@@ -44,6 +41,8 @@ export default function Ball() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
     // renderer toneMapping
@@ -51,6 +50,10 @@ export default function Ball() {
 
     // output encoding
     renderer.outputEncoding = THREE.sRGBEncoding;
+
+    // axes helper
+    const axesHelper = new THREE.AxesHelper(200);
+    scene.add(axesHelper);
 
     // controls
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -68,8 +71,25 @@ export default function Ball() {
       0xffffff,
       API.directionalLightIntensity
     );
-    directionalLight.position.set(10, 10, 10);
+    directionalLight.position.set(0, 30, 0);
+    directionalLight.castShadow = true;
+
+    // shadow range
+    const d = 50;
+    directionalLight.shadow.camera.left = -d;
+    directionalLight.shadow.camera.right = d;
+    directionalLight.shadow.camera.top = d;
+    directionalLight.shadow.camera.bottom = -d;
+
+    // shadow resolution
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+
     scene.add(directionalLight);
+
+    //Create a helper for the shadow camera (optional)
+    const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 10);
+    scene.add(dLightHelper);
 
     // envmap
     const pisaMap = (function (prefix, postfix) {
@@ -90,7 +110,11 @@ export default function Ball() {
 
       const geometry = new THREE.SphereGeometry(8, 64, 32);
       const material = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(API.materialColor),
+        color: new THREE.Color(
+          API.ballColor.r,
+          API.ballColor.g,
+          API.ballColor.b
+        ),
         metalness: 0,
         roughness: 0,
         envMap: texture,
@@ -99,14 +123,14 @@ export default function Ball() {
 
       // mesh
       ball = new THREE.Mesh(geometry, material);
-      ball.position.y = 5;
+      ball.castShadow = true;
       scene.add(ball);
-
-      // shadow
-      renderShadow();
 
       render();
     });
+
+    // shadow
+    renderShadow();
 
     // gui control panel
     gui = new GUI();
@@ -131,19 +155,25 @@ export default function Ball() {
         ball.material.envMapIntensity = API.envMapIntensity;
         render();
       });
-    gui
-      .addColor(API, "materialColor")
-      .name("color")
+
+    const guiColor = gui.addFolder("Colorization");
+    guiColor
+      .addColor(API, "ballColor")
+      .name("ball color")
       .onChange(() => {
-        ball.material.color = API.materialColor;
+        ball.material.color = API.ballColor;
+        render();
+      });
+    guiColor
+      .addColor(API, "groundColor")
+      .name("ground color")
+      .onChange(() => {
+        table.material.color = API.groundColor;
         render();
       });
 
     // on window resize
     window.addEventListener("resize", onWindowResize, false);
-
-    // animate
-    animate();
   }
 
   function render() {
@@ -151,38 +181,21 @@ export default function Ball() {
   }
 
   function renderShadow() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 128;
-    canvas.height = 128;
-
-    const context = canvas.getContext("2d");
-    const gradient = context.createRadialGradient(
-      canvas.width / 2,
-      canvas.height / 2,
-      0,
-      canvas.width / 2,
-      canvas.height / 2,
-      canvas.width / 2
-    );
-    gradient.addColorStop(0, "rgba(190,190,190,0.1)");
-    gradient.addColorStop(0.2, "rgba(255,255,255,0.5)");
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    const shadowTexture = new THREE.CanvasTexture(canvas);
-
-    const shadowMaterial = new THREE.MeshBasicMaterial({
-      map: shadowTexture,
-      color: new THREE.Color('rgba(255, 242, 204, 1)'),
-      metalness: 0,
-      roughness: 0,
+    // table (ground)
+    const shadowMaterial = new THREE.MeshLambertMaterial({
+      color: new THREE.Color(
+        API.groundColor.r,
+        API.groundColor.g,
+        API.groundColor.b
+      ),
+      side: THREE.DoubleSide,
     });
-    const shadowGeo = new THREE.PlaneGeometry(100, 100, 1, 1);
+    const shadowGeo = new THREE.BoxGeometry(100, 100, 1);
 
     table = new THREE.Mesh(shadowGeo, shadowMaterial);
-    table.position.y = -13;
+    table.position.y = -18;
     table.rotation.x = -Math.PI / 2;
+    table.receiveShadow = true;
     scene.add(table);
   }
 
@@ -199,8 +212,8 @@ export default function Ball() {
     window.requestAnimationFrame(animate);
 
     if (ball) {
-      ball.rotation.x += 0.005;
-      ball.rotation.y += 0.005;
+      ball.rotation.x += Math.PI / 4;
+      ball.rotation.y += Math.PI / 4;
     }
 
     render();
@@ -208,6 +221,7 @@ export default function Ball() {
 
   useEffect(() => {
     init();
+    animate();
   });
 
   return null;
