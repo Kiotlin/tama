@@ -5,13 +5,15 @@ import { LightProbeGenerator } from "three/addons/lights/LightProbeGenerator.js"
 import { useEffect } from "react";
 
 export default function Ball() {
-  let scene, camera, renderer;
+  let scene, camera, renderer, control;
   let ball, table;
 
   let gui;
 
   let lightProbe;
   let directionalLight;
+
+  let isPause = false;
 
   // linear color space
   const API = {
@@ -20,6 +22,10 @@ export default function Ball() {
     envMapIntensity: 1,
     ballColor: { r: 0.6745, g: 0.1642, b: 0.1613 },
     groundColor: { r: 0.1716, g: 0.4615, b: 0.3669 },
+    play: () => {
+      isPause = !isPause;
+      animate();
+    },
   };
 
   function init() {
@@ -55,12 +61,13 @@ export default function Ball() {
     // const axesHelper = new THREE.AxesHelper(200);
     // scene.add(axesHelper);
 
-    // controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.addEventListener("change", render);
-    controls.minDistance = 40;
-    controls.maxDistance = 150;
-    controls.enablePan = false;
+    // control
+    control = new OrbitControls(camera, renderer.domElement);
+    control.addEventListener("change", render);
+    control.minDistance = 40;
+    control.maxDistance = 150;
+    control.enablePan = false;
+    control.autoRotate = !isPause;
 
     // probe
     lightProbe = new THREE.LightProbe();
@@ -171,6 +178,7 @@ export default function Ball() {
         table.material.color = API.groundColor;
         render();
       });
+    gui.add(API, "play").name("play / pause");
 
     // on window resize
     window.addEventListener("resize", onWindowResize, false);
@@ -209,14 +217,12 @@ export default function Ball() {
   }
 
   function animate() {
-    window.requestAnimationFrame(animate);
+    if (!isPause) {
+      window.requestAnimationFrame(animate);
 
-    if (ball) {
-      ball.rotation.x += Math.PI / 4;
-      ball.rotation.y += Math.PI / 4;
+      control.update();
+      render();
     }
-
-    render();
   }
 
   useEffect(() => {
