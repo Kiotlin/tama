@@ -1,0 +1,10 @@
+.copyright {
+  position: absolute;
+  bottom: 1em;
+  background: black;
+  color: white;
+}
+.copyright a {
+  color: white;
+  text-decoration: none;
+}

@@ -3,6 +3,7 @@ import Ball from "./components/ball";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
+import { Cr } from "./utilities";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Ball />
         <OrbitControls autoRotate enablePan={false} minDistance={40} maxDistance={150} />
       </Canvas>
+      <Cr />
     </>
   );
 }
