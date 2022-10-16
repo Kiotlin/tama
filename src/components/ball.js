@@ -3,18 +3,32 @@ import * as THREE from "three";
 import { useHelper } from "@react-three/drei";
 import { DynamicProps } from "../utilities";
 import { CubeTable, SolidBall } from "../accessories";
+import { useTweaks, makeFolder } from "use-tweaks";
 
 // linear color space
 const API = DynamicProps({
-  lightProbeIntensity: 1.0,
   directionalLightIntensity: 0.2,
   envMapIntensity: 1,
-  ballColor: { r: 0.6745, g: 0.1642, b: 0.1613 },
-  groundColor: { r: 0.1716, g: 0.4615, b: 0.3669 },
+  ballColor: '#c54545',
+  groundColor: '#3778ac',
 });
 
 export default function Ball() {
   const dLight = useRef();
+  const { dli, enm, ball, table } = useTweaks("", {
+    ...makeFolder(
+      "Intensity",
+      {
+        dli: { value: API.directionalLightIntensity, min: 0.0, max: 1.0 },
+        enm: { value: API.envMapIntensity, min: 0.0, max: 1.0 },
+      },
+      false
+    ),
+    ...makeFolder("Color", {
+      ball: { value: API.ballColor },
+      table: { value: API.groundColor },
+    }, false),
+  });
   const d = 8;
 
   useHelper(dLight, THREE.DirectionalLightHelper, 2, "hotpink");
@@ -30,7 +44,7 @@ export default function Ball() {
       <directionalLight
         castShadow
         ref={dLight}
-        args={[0xfffffff, API.directionalLightIntensity]}
+        args={[0xfffffff, dli]}
         position={[0, 30, 0]}
         shadow-mapSize={[2048, 2048]}
       >
@@ -40,12 +54,12 @@ export default function Ball() {
         <group>
           <SolidBall
             args={[8, 64, 32]}
-            color={Object.values(API.ballColor)}
-            envMapIntensity={API.envMapIntensity}
+            color={ball}
+            envMapIntensity={enm}
           />
           <CubeTable
             args={[100, 100, 1]}
-            color={Object.values(API.groundColor)}
+            color={table}
           />
         </group>
       </Suspense>
